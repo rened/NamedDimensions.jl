@@ -31,3 +31,8 @@ r = @p named data :a :b | named (:b=>2:3)
 r = @p named data :a :b | named (:a=>1:2)
 @fact r.names --> [:a, :b]
 @fact r.names --> [2 5; 3 6]
+
+n = named(data, :a, :b)
+@fact n[:a] --> at(:a)
+@fact (@p n :b (2:3)) --> named(:b => 2:3)
+@fact (@p n :b (2:3) :a 2) --> named([5 6], :a, :b)
