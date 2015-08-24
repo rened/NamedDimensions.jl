@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/rened/NamedDimensions.jl.svg?branch=master)](https://travis-ci.org/rened/NamedDimensions.jl)
 
-This package allows to assign names to the dimensions of a multidimensional array and index, slice and permute using these names.
+This package allows to assign names to the dimensions of a multidimensional array and to index, slice and permute using these names.
 
 ### Functions
 
@@ -41,6 +41,4 @@ array(N, :b)                   # == data
 
 N = named(ones(2,3,4), :a, :b, :c)
 array(N, :c, :a)               # of size 3 x 4 x 2
-
-# 
 ```
