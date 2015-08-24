@@ -20,6 +20,7 @@ array(a::NamedDims) = a.data
 array(a::NamedDims, inds...) = array(named(a, inds...))
 names(a::NamedDims) = a.names
 
+inside = in
 function named(a::NamedDims, inds...)
     [assert(isa(x, Pair) || isa(x, Symbol)) for x in inds]
     inds = [isa(x, Pair) ? x : Pair(x, Colon()) for x in inds]
