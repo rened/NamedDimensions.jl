@@ -4,6 +4,8 @@
 
 This package allows to assign names to the dimensions of a multidimensional array and to index, slice and permute using these names. Also, mathematical operators like `*` and `.+` are fully supported, as well as statistical functions like `mean` and `std`.
 
+It can be used standalone, but also provides tight integration with [FunctionalData.jl](https://github.com/rened/FunctionalData.jl).
+
 ### Functions
 
 ```jl
