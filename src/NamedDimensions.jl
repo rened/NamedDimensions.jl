@@ -39,6 +39,8 @@ import Base.size
 size(a::NamedDims) = size(a.data)
 size(a::NamedDims, dim::Int) = size(a.data, dim)
 size(a::NamedDims, dim::Symbol) = size(a.data, getind(a, dim))
+import Base.ndims
+ndims(a::NamedDims) = ndims(a.data)
 import Base.length
 length(a::NamedDims) = length(a.data)
 import FunctionalData.len

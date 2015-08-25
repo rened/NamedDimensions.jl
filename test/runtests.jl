@@ -9,6 +9,7 @@ facts("All") do
     @fact r.names --> [:b]
     @fact array(r) --> [4,5,6]
 
+    @fact ndims(n) --> 2
     @fact size(n) --> (2,3)
     @fact size(n,1) --> 2
     @fact size(n,:a) --> 2
