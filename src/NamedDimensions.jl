@@ -4,8 +4,8 @@ module NamedDimensions
 using FunctionalData
 
 export NamedDims, named, array, names, at
-immutable NamedDims{N}
-    data
+immutable NamedDims{T,N}
+    data::Array{T,N}
     names::Array{Symbol}
     function NamedDims(a, names...)
         names = collect(names)
@@ -22,13 +22,61 @@ immutable NamedDims{N}
 end
 
 named(a::AbstractArray, names::Array{Symbol}) = named(a, names...)
-named(a::AbstractArray, names...) = (assert(all(x->isa(x,Symbol), names)); NamedDims{ndims(a)}(a, names...))
+named(a::AbstractArray, names...) = (assert(all(x->isa(x,Symbol), names)); NamedDims{eltype(a),ndims(a)}(a, names...))
 
 array(a::NamedDims) = a.data
 array(a::NamedDims, inds...) = array(named(a, inds...))
 import Base.getindex
 getindex(a::NamedDims, inds...) = named(a, inds...)
+import Base.eltype
+eltype{T,N}(a::NamedDims{T,N}) = T
+
+for f in [:fst, :snd, :third, :last]
+    @eval import FunctionalData.$f
+    @eval $f(a::NamedDims) = named($f(a.data), droplast(a.names))
+end
+
 import FunctionalData.at
+at(a::NamedDims, i::Int) = named(at(a.data,i), droplast(a.names))
+
+for f in [:take, :takelast, :drop, :droplast, :partition, :partsoflen]
+    @eval import FunctionalData.$f
+    @eval $f(a::NamedDims, i::Int) = named($f(a.data,i), a.names)
+end
+
+for f in [:part, :trimmedpart]
+    @eval import FunctionalData.$f
+    @eval $f{T}(a::NamedDims, i::DenseArray{T,2}) = named($f(a.data,i), a.names)
+    @eval $f(a::NamedDims, i::UnitRange) = named($f(a.data,i), a.names)
+    @eval $f(a::NamedDims, i::AbstractVector) = named($f(a.data,i), a.names)
+end
+
+import FunctionalData.concat
+function concat(a::NamedDims, b::NamedDims)
+    assert(a.names == b.names)
+    assert(size(fst(a)) == size(fst(b)))
+    named(concat(a.data, b.data), a.names)
+end
+
+import FunctionalData.flatten
+function flatten{T,N}(a::Vector{NamedDims{T,N}})
+    assert(all(x->x.names == fst(a).names, a))
+    assert(all(x->size(fst(x))[1:end-1] == size(fst(fst(a)))[1:end-1], a))
+    named(flatten(map(a,array)), fst(a).names)
+end
+
+import FunctionalData.stack
+function stack{T,N}(a::Vector{NamedDims{T,N}}, name)
+    assert(all(x->x.names == fst(a).names, a))
+    assert(all(x->size(fst(x)) == size(fst(fst(a))), a))
+    named(stack(map(a,array)), concat(fst(a).names, name))
+end
+
+
+
+
+
+at(a::NamedDims, inds::Tuple) = at(a.data, inds)
 at(a::NamedDims, inds...) = named(a, inds...)
 call(a::NamedDims, inds...) = named(a, inds...)
 
@@ -60,7 +108,9 @@ function named(a::NamedDims, inds...)
     isname(x) = (isa(x, Pair) && isa(x.first, Symbol)) || isa(x, Symbol)
     issqueezer(x) = isa(x, Pair) && isa(x.second, Integer)
     if all(x->!isa(x, Pair), inds) && any(x->!isa(x, Symbol), inds)  # pairs of arguments
-        assert(length(inds) % 2 == 0)
+        if length(inds) % 2 != 0
+            error("NamedDimensions: Expected an even number of parameters, got $(inds)")
+        end
         inds = @p map2 inds[1:2:end] inds[2:2:end] Pair
         return named(a, inds...)
     end
@@ -94,12 +144,17 @@ end
 
 import FunctionalData.showinfo
 function showinfo(io::IO, a::NamedDims, comment::String = "")
-    print(io, comment, "  --   ")
-    @p map2 a.names size(a.data) ((n,s) -> "$s$n") | join " x " | println io _
+    print(io, comment, length(comment)>0 ? "  --  ": "----  ")
+    @p map2 a.names size(a.data) ((n,s) -> "$s $n") | join " x " | println io _
     showinfo(io, a.data; showheader = false)
 end
 
-for f in [:mean, :maximum, :minimum, :median, :std, :var]
+for f in [:sqrt]
+    @eval import Base.$f
+    @eval $f(a::NamedDims) = $f(a.data)
+end
+
+for f in [:mean, :maximum, :minimum, :median, :std, :var, :sum]
     @eval import Base.$f
     @eval $f(a::NamedDims) = $f(a.data)
     @eval $f(a::NamedDims, dim::Int) = named(squeeze($f(a.data,dim),dim), dropat(a.names,dim)...)
@@ -133,11 +188,11 @@ end
 
 for (f,inds) in [(:*,[1,4]), (:/, [1,3]), (:\, [2,4])]
     @eval import Base.$f
-    @eval $f(a::NamedDims, b::AbstractArray) = named($f(a.data, b), concat(a.names, dimnames(a))[$inds])
-    @eval $f(a::AbstractArray, b::NamedDims) = named($f(a, b.data), concat(dimnames(a), b.names)[$inds])
     @eval function $f(a::NamedDims, b::NamedDims)
         named($f(a.data, b.data), concat(a.names, b.names)[$inds])
-   end
+    end
+    @eval $f(a::NamedDims, b::AbstractArray) = named($f(a.data, b), concat(a.names, dimnames(a))[$inds])
+    @eval $f(a::AbstractArray, b::NamedDims) = named($f(a, b.data), concat(dimnames(a), b.names)[$inds])
 end
 
 

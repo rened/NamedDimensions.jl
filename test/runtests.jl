@@ -49,9 +49,9 @@ facts("All") do
 
     buf = IOBuffer()
     showinfo(buf,n)
-    @fact takebuf_string(buf) --> "  --   2a x 3b\ntype: Array{Int64,2}   size: (2,3)\n    min:  1   max: 6\n    mean: 3.5   median: 3.5\n"
+    @fact takebuf_string(buf) --> "----  2 a x 3 b\n    type: Array{Int64,2}   size: (2,3)\n    min:  1   max: 6\n    mean: 3.5   median: 3.5\n"
     showinfo(buf, n, "n in runtests")
-    @fact takebuf_string(buf) --> "n in runtests  --   2a x 3b\ntype: Array{Int64,2}   size: (2,3)\n    min:  1   max: 6\n    mean: 3.5   median: 3.5\n"
+    @fact takebuf_string(buf) --> "n in runtests  --  2 a x 3 b\n    type: Array{Int64,2}   size: (2,3)\n    min:  1   max: 6\n    mean: 3.5   median: 3.5\n"
 
     @fact minimum(n) --> 1
     @fact maximum(n) --> 6
@@ -76,4 +76,11 @@ facts("All") do
     @fact NamedDimensions.dimnames(named(rand(2,3),:dimA,:dimB), 1) --> [:dimC]
     @fact NamedDimensions.dimnames(named(rand(2,3),:dimC,:dimB), 1) --> [:dimA]
     @fact NamedDimensions.dimnames(named(rand(2,3),:dimC,:dimB), 3) --> [:dimA, :dimD, :dimE]
+
+    n = named(data, :a, :b)
+    @fact concat(n,n) --> named(concat(data,data), :a, :b)
+    @fact flatten([n,n]) --> named(concat(data,data), :a, :b)
+    @fact concat(n,n) --> named(concat(data,data), :a, :b)
+    @fact flatten([n,n]) --> named(concat(data,data), :a, :b)
+    @fact stack([n,n], :c) --> named(stack(Any[data,data]), :a, :b, :c)
 end
