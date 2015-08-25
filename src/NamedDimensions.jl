@@ -162,7 +162,7 @@ end
 
 import FunctionalData.showinfo
 function showinfo(io::IO, a::NamedDims, comment::String = "")
-    print(io, comment, length(comment)>0 ? "  --  ": "----  ")
+    print(io, comment, length(comment) > 0 ? "  --  ": "----  ")
     @p mapvec2 a.names size(a.data) ((n,s) -> "$s $n") | join " x " | println io _
     showinfo(io, a.data; showheader = false)
 end
