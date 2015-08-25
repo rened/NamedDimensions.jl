@@ -65,6 +65,9 @@ facts("All") do
     @fact std(n,:a) --> named(vec(std(n.data,1)), :b)
     @fact n .+ n --> named([2 4 6;8 10 12], :a, :b)
     @fact n .+ [1 2 3] --> named([2 4 6; 5 7 9], :a, :b)
+    @fact array(named(ones(2,3,4)) .+ ones(2)) --> 2*ones(2,3,4)
+    @fact array(named(ones(2,3,4)) .+ ones(2,1)) --> 2*ones(2,3,4)
+    @fact array(named(ones(2,3,4)) .+ ones(2,1,1)) --> 2*ones(2,3,4)
     @fact n .+ [1 2]' --> named([2 3 4; 6 7 8], :a, :b)
     @fact [1 2 3] .+ n --> named([2 4 6; 5 7 9], :a, :b)
     @fact [1 2]' .+ n --> named([2 3 4; 6 7 8], :a, :b)
@@ -87,4 +90,13 @@ facts("All") do
 
     @fact (@p map n id) --> n
     @fact (@p map n array) --> n.data
+
+    @fact (@p map2 n n plus) --> named(data+data, :a, :b)
+    @fact (@p map2 n data plus) --> named(data+data, :a, :b)
+    @fact (@p map2 data n plus) --> named(data+data, :a, :b)
 end
+
+
+
+
+

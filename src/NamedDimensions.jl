@@ -21,8 +21,9 @@ immutable NamedDims{T,N}
     end
 end
 
-named(a::AbstractArray, names::Array{Symbol}) = named(a, names...)
+named(a::AbstractArray, names::Vector{Symbol}) = named(a, names...)
 named(a::AbstractArray, names...) = (assert(all(x->isa(x,Symbol), names)); NamedDims{eltype(a),ndims(a)}(a, names...))
+named(a::NamedDims, names::Vector{Symbol}) = named(a, names...)
 
 import Base: getindex, eltype, isempty
 array(a::NamedDims) = a.data
@@ -66,17 +67,14 @@ function flatten{T,N}(a::Vector{NamedDims{T,N}})
 end
 
 import FunctionalData.stack
-function stack{T,N}(a::Vector{NamedDims{T,N}}, name)
+function stack{T,N}(a::Vector{NamedDims{T,N}}, name::Symbol)
     assert(all(x->x.names == fst(a).names, a))
     assert(all(x->size(x) == size(fst(a)), a))
     named(stack(map(a,array)), concat(fst(a).names, name))
 end
 
-import FunctionalData: map
-function map{T,N}(a::NamedDims{T,N}, f::Function)
-    isempty(a) && return []
-
-    r = [f(at(a,i)) for i in 1:len(a)]
+function stack(r, a::NamedDims)
+    isempty(r) && return []
     if isa(fst(r), NamedDims)
         return stack(typed(r), last(a.names))
     else
@@ -84,6 +82,17 @@ function map{T,N}(a::NamedDims{T,N}, f::Function)
     end
 end
 
+import FunctionalData: map, map2, map3, map4, map5
+
+function map{T,N}(a::NamedDims{T,N}, f::Function)
+    r = [f(at(a,i)) for i in 1:len(a)]
+    return stack(r, a)
+end
+mapper2(f, N, a, b, fa, fb) = stack([f(fa(at(a,i)), fb(at(b,i))) for i in 1:len(N)], N)
+squeezer(a) = size(a,ndims(a)) == 1 ? squeeze(a,ndims(a)) : a
+map2(a::NamedDims, b::NamedDims, f::Function) = mapper2(f,a,a,b,id,id)
+map2(a::NamedDims, b, f::Function) = mapper2(f,a,a,b,id,squeezer)
+map2(a, b::NamedDims, f::Function) = mapper2(f,b,a,b,squeezer,id)
 
 at(a::NamedDims, inds::Tuple) = at(a.data, inds)
 at(a::NamedDims, inds...) = named(a, inds...)
@@ -170,12 +179,21 @@ for f in [:mean, :maximum, :minimum, :median, :std, :var, :sum]
     @eval $f(a::NamedDims, dim::Symbol) = (assert(dim in a.names); $f(a, getind(a, dim)))
 end
 
+function broadcast(f::Function, smaller::NamedDims, larger::NamedDims)
+    last = @p filter larger.names not*inside smaller.names
+    orderforsmaller = @p filter larger.names inside smaller.names
+    a = isempty(last) ? larger : named(larger, last)
+    reorderedsmaller = smaller[orderforsmaller].data
+    r = @p f reorderedsmaller a.data
+    named(r, concat(orderforsmaller, last))[larger.names] 
+end
+
 for f in [:.+, :.-, :.*, :./, :.\, :.^]
     @eval import Base.$f
-    @eval $f(a::NamedDims, b::AbstractArray) = ndims(a.data) >= ndims(b) ? named($f(a.data, b), a.names) : f(a.data, b)
-    @eval $f(a::AbstractArray, b::NamedDims) = ndims(b.data) >= ndims(a) ? named($f(a, b.data), b.names) : f(a, b.data)
+    @eval $f(a::NamedDims, b::AbstractArray) = ndims(a.data) >= ndims(b)-1 ? named($f(a.data, b), a.names) : $f(a.data, b)
+    @eval $f(a::AbstractArray, b::NamedDims) = ndims(b.data) >= ndims(a)-1 ? named($f(a, b.data), b.names) : $f(a, b.data)
     @eval function $f(a::NamedDims, b::NamedDims)
-        named($f(a.data, b.data), length(a.names) > length(b.names) ? a.names : b.names)
+        length(a.names) < length(b.names) ? broadcast($f, a, b) : broadcast($f, b, a)
     end
 end
 
