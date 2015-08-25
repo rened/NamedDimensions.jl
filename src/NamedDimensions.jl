@@ -35,6 +35,14 @@ names(a::NamedDims) = a.names
 import Base.==
 ==(a::NamedDims, b::NamedDims) = a.names == b.names && a.data == b.data
 
+import Base.size
+size(a::NamedDims) = size(a.data)
+import Base.length
+length(a::NamedDims) = length(a.data)
+import FunctionalData.len
+len(a::NamedDims) = len(a.data)
+
+
 function named(a::NamedDims, inds...)
     isname(x) = (isa(x, Pair) && isa(x.first, Symbol)) || isa(x, Symbol)
     issqueezer(x) = isa(x, Pair) && isa(x.second, Integer)

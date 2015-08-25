@@ -3,13 +3,17 @@ using FactCheck, FunctionalData
 
 facts("All") do
     data = [1 2 3;4 5 6]
-    a = named(data, :a, :b)
-    r = named(a, :a => 2)
+    n = named(data, :a, :b)
+    r = named(n, :a => 2)
     @fact r.data --> [4,5,6]
     @fact r.names --> [:b]
     @fact array(r) --> [4,5,6]
 
-    r = @p named a :a
+    @fact size(n) --> (2,3)
+    @fact length(n) --> 6
+    @fact len(n) --> 3
+
+    r = @p named n :a
     @fact r.names --> [:b, :a]
     @fact size(r.data) --> (3,2)
 
