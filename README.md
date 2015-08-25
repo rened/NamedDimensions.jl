@@ -45,7 +45,7 @@ N = named(data, :a, :b)
 named(N, :b => 2:3)            # == named([2 3; 5 6], :a, :b)
 
 # providing fewer names than dimensions
-named(data, :b)                # == named(data, :dim1, :b)
+named(data, :b)                # == named(data, :dimA, :b)
 
 # access underlying data
 array(N)                       # == data
