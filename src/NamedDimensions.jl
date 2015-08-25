@@ -37,11 +37,20 @@ import Base.==
 
 import Base.size
 size(a::NamedDims) = size(a.data)
+size(a::NamedDims, dim::Int) = size(a.data, dim)
+size(a::NamedDims, dim::Symbol) = size(a.data, getind(a, dim))
 import Base.length
 length(a::NamedDims) = length(a.data)
 import FunctionalData.len
 len(a::NamedDims) = len(a.data)
 
+function getind(a::NamedDims, x::Symbol)
+    ind = findfirst(x.==a.names)
+    if ind == 0
+        error("NamedDimensions: No dimension $x in $(a.names)")
+    end
+    ind
+end
 
 function named(a::NamedDims, inds...)
     isname(x) = (isa(x, Pair) && isa(x.first, Symbol)) || isa(x, Symbol)
@@ -89,7 +98,7 @@ end
 for f in [:mean, :maximum, :minimum, :median, :std, :var]
     @eval import Base.$f
     @eval $f(a::NamedDims, dim::Int) = named(squeeze($f(a.data,dim),dim), dropat(a.names,dim)...)
-    @eval $f(a::NamedDims, dim::Symbol) = (assert(dim in a.names); $f(a, findfirst(a.names .== dim)))
+    @eval $f(a::NamedDims, dim::Symbol) = (assert(dim in a.names); $f(a, getind(a, dim)))
 end
 
 for f in [:.+, :.-, :.*, :./, :.\, :.^]

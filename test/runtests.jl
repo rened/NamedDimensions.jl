@@ -10,6 +10,10 @@ facts("All") do
     @fact array(r) --> [4,5,6]
 
     @fact size(n) --> (2,3)
+    @fact size(n,1) --> 2
+    @fact size(n,:a) --> 2
+    @fact size(n,2) --> 3
+    @fact size(n,:b) --> 3
     @fact length(n) --> 6
     @fact len(n) --> 3
 
