@@ -99,6 +99,7 @@ end
 
 for f in [:mean, :maximum, :minimum, :median, :std, :var]
     @eval import Base.$f
+    @eval $f(a::NamedDims) = $f(a.data)
     @eval $f(a::NamedDims, dim::Int) = named(squeeze($f(a.data,dim),dim), dropat(a.names,dim)...)
     @eval $f(a::NamedDims, dim::Symbol) = (assert(dim in a.names); $f(a, getind(a, dim)))
 end

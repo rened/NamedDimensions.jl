@@ -53,6 +53,9 @@ facts("All") do
     showinfo(buf, n, "n in runtests")
     @fact takebuf_string(buf) --> "n in runtests  --   2a x 3b\ntype: Array{Int64,2}   size: (2,3)\n    min:  1   max: 6\n    mean: 3.5   median: 3.5\n"
 
+    @fact minimum(n) --> 1
+    @fact maximum(n) --> 6
+    @fact mean(n) --> 3.5
     @fact minimum(n,1) --> named([1,2,3],:b)
     @fact minimum(n,:a) --> named([1,2,3],:b)
     @fact minimum(n,2) --> named([1,4],:a)
