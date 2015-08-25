@@ -103,6 +103,11 @@ N[:c, :a]                      # == N[:b, :c, :a]
 data = [1 2 3; 4 5 6]
 N = named(data, :a, :b)
 
+N .+ ones(2,1)                 # == named(data+ones(2,1), :a, :b)
+N * ones(3,1)                  # == named(sum(data,2), :a, :dimA)
+N * N'                         # == named(data*data', :a, :a)
+
 minimum(N,:a)                  # == named([1,2,3], :b)
 std(N,:b)                      # == named(vec(std(N.data,2)), :a)
+
 ```
