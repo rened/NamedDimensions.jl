@@ -24,12 +24,12 @@ end
 named(a::AbstractArray, names::Array{Symbol}) = named(a, names...)
 named(a::AbstractArray, names...) = (assert(all(x->isa(x,Symbol), names)); NamedDims{eltype(a),ndims(a)}(a, names...))
 
+import Base: getindex, eltype, isempty
 array(a::NamedDims) = a.data
 array(a::NamedDims, inds...) = array(named(a, inds...))
-import Base.getindex
 getindex(a::NamedDims, inds...) = named(a, inds...)
-import Base.eltype
 eltype{T,N}(a::NamedDims{T,N}) = T
+isempty(a::NamedDims) = len(a) == 0
 
 for f in [:fst, :snd, :third, :last]
     @eval import FunctionalData.$f
@@ -37,7 +37,7 @@ for f in [:fst, :snd, :third, :last]
 end
 
 import FunctionalData.at
-at(a::NamedDims, i::Int) = named(at(a.data,i), droplast(a.names))
+at(a::NamedDims, i::Int) = a[last(a.names) => i]
 
 for f in [:take, :takelast, :drop, :droplast, :partition, :partsoflen]
     @eval import FunctionalData.$f
@@ -72,8 +72,17 @@ function stack{T,N}(a::Vector{NamedDims{T,N}}, name)
     named(stack(map(a,array)), concat(fst(a).names, name))
 end
 
+import FunctionalData: map
+function map{T,N}(a::NamedDims{T,N}, f::Function)
+    isempty(a) && return []
 
-
+    r = [f(at(a,i)) for i in 1:len(a)]
+    if isa(fst(r), NamedDims)
+        return named(stack(map(r,array)), concat(fst(r).names, last(a.names)))
+    else
+        return stack(r)
+    end
+end
 
 
 at(a::NamedDims, inds::Tuple) = at(a.data, inds)

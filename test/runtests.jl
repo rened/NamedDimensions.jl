@@ -83,4 +83,8 @@ facts("All") do
     @fact concat(n,n) --> named(concat(data,data), :a, :b)
     @fact flatten([n,n]) --> named(concat(data,data), :a, :b)
     @fact stack([n,n], :c) --> named(stack(Any[data,data]), :a, :b, :c)
+    @fact unstack(stack([n,n], :c)) --> [named(data, :a, :b), named(data, :a, :b)]
+
+    @fact (@p map n id) --> n
+    @fact (@p map n array) --> n.data
 end
