@@ -57,5 +57,13 @@ function named(a::NamedDims, inds...)
     end
 end
 
+import FunctionalData.showinfo
+function showinfo(io::IO, a::NamedDims, comment::String = "")
+    print(io, comment, "  --   ")
+    @p map2 a.names size(a.data) ((n,s) -> "$s$n") | join " x " | println io _
+    showinfo(io, a.data; showheader = false)
+end
+
+
 end # module
 

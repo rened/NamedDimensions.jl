@@ -36,3 +36,9 @@ n = named(data, :a, :b)
 @fact n[:a] --> at(:a)
 @fact (@p n :b (2:3)) --> named(:b => 2:3)
 @fact (@p n :b (2:3) :a 2) --> named([5 6], :a, :b)
+
+buf = IOBuffer()
+showinfo(buf,n)
+@fact takebuf_string(buf) --> "  --   2a x 3b\ntype: Array{Int64,2}   size: (2,3)\n    min:  1   max: 6\n    mean: 3.5   median: 3.5\n"
+showinfo(buf, n, "n in runtests")
+@fact takebuf_string(buf) --> "  --   2a x 3b\ntype: Array{Int64,2}   size: (2,3)\n    min:  1   max: 6\n    mean: 3.5   median: 3.5\nn in runtests  --   2a x 3b\ntype: Array{Int64,2}   size: (2,3)\n    min:  1   max: 6\n    mean: 3.5   median: 3.5\n"
