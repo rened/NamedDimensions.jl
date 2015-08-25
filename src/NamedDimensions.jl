@@ -9,7 +9,7 @@ immutable NamedDims{N}
     names::Array{Symbol}
     function NamedDims(a, names...)
         names = collect(names)
-        assert(length(names) <= ndims(a))
+        length(names) > ndims(a) && error("NamedDimensions: Got $(length(names)) names $names for $(ndims(a)) dims $(size(a))")
         for i = 1:len(names), j = i+1:len(names)
             names[i]==names[j] && error("NamedDimensions: Duplicate names: $names")
         end
@@ -83,7 +83,7 @@ function named(a::NamedDims, inds...)
         isa(inds[i], Integer) ? nothing : push!(newnames, a.names[i])
     end
 
-    b = Base.slice(a.data, inds...)
+    b = slice(a.data, inds...)
     if ordered == newnames
         return named(b, newnames)
     else
