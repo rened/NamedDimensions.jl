@@ -10,7 +10,9 @@ immutable NamedDims{N}
     function NamedDims(a, names...)
         names = collect(names)
         assert(length(names) <= ndims(a))
-        len(unique(names)) != len(names) && error("NamedDimensions: Duplicate names: $names")
+        for i = 1:len(names), j = i+1:len(names)
+            names[i]==names[j] && error("NamedDimensions: Duplicate names: $names")
+        end
 
         if length(names) < ndims(a)
             names = vcat(dimnames(names, ndims(a)-length(names)), names)
