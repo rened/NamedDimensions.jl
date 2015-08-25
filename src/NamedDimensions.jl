@@ -61,14 +61,14 @@ end
 import FunctionalData.flatten
 function flatten{T,N}(a::Vector{NamedDims{T,N}})
     assert(all(x->x.names == fst(a).names, a))
-    assert(all(x->size(fst(x))[1:end-1] == size(fst(fst(a)))[1:end-1], a))
+    assert(all(x->size(x)[1:end-1] == size(fst(a))[1:end-1], a))
     named(flatten(map(a,array)), fst(a).names)
 end
 
 import FunctionalData.stack
 function stack{T,N}(a::Vector{NamedDims{T,N}}, name)
     assert(all(x->x.names == fst(a).names, a))
-    assert(all(x->size(fst(x)) == size(fst(fst(a))), a))
+    assert(all(x->size(x) == size(fst(a)), a))
     named(stack(map(a,array)), concat(fst(a).names, name))
 end
 
@@ -78,7 +78,7 @@ function map{T,N}(a::NamedDims{T,N}, f::Function)
 
     r = [f(at(a,i)) for i in 1:len(a)]
     if isa(fst(r), NamedDims)
-        return named(stack(map(r,array)), concat(fst(r).names, last(a.names)))
+        return stack(typed(r), last(a.names))
     else
         return stack(r)
     end
