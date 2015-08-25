@@ -1,10 +1,12 @@
+VERSION >= v"0.4.0-dev+6521" && __precompile__()
+
 module NamedDimensions
 using FunctionalData
 
 export NamedDims, named, array, names, at
-type NamedDims{N}
+immutable NamedDims{N}
     data
-    names
+    names::Array{Symbol}
     function NamedDims(a, names...)
         names = collect(names)
         assert(length(names) <= ndims(a))
