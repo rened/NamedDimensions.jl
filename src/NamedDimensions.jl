@@ -160,6 +160,14 @@ function named(a::NamedDims, inds...)
     end
 end
 
+import Base.summary
+function summary{T,N}(a::NamedDims{T,N})
+    @p mapvec2 a.names size(a.data) ((n,s) -> "$s $n") | join " x " | concat " :: NamedDims{$T,$N}"
+end
+
+import Base.show
+show(io::IO, a::NamedDims) = (println(io, summary(a)); Base.print_matrix_repr(io,a.data))
+
 import FunctionalData.showinfo
 function showinfo(io::IO, a::NamedDims, comment::String = "")
     print(io, comment, length(comment) > 0 ? "  --  ": "----  ")
