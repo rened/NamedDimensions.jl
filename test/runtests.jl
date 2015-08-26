@@ -47,6 +47,11 @@ facts("All") do
     @fact (@p n :b (2:3)) --> named(n, :b => 2:3)
     @fact (@p n :b (2:3) :a 2) --> named([5,6], :b)
 
+    context("linear indexing") do
+        @fact n[1] --> 1
+        @fact n[2:3] --> [4,2]
+    end
+
     buf = IOBuffer()
     showinfo(buf,n)
     @fact takebuf_string(buf) --> "----  2 a x 3 b\n    type: Array{Int64,2}   size: (2,3)\n    min:  1   max: 6\n    mean: 3.5   median: 3.5\n"
@@ -73,6 +78,7 @@ facts("All") do
     @fact [1 2]' .+ n --> named([2 3 4; 6 7 8], :a, :b)
     @fact n .* data --> named(data.^2, :a, :b)
     @fact n * data' --> named([14 32; 32 77], :a, :dimB)
+    @fact (@p minimum n :b | minimum :a) --> 1
 
     @fact NamedDimensions.dimnames(named(rand(2,3),:a,:b), 1) --> [:dimA]
     @fact NamedDimensions.dimnames(named(rand(2,3),:dimA,:b), 1) --> [:dimB]
@@ -80,13 +86,25 @@ facts("All") do
     @fact NamedDimensions.dimnames(named(rand(2,3),:dimC,:dimB), 1) --> [:dimA]
     @fact NamedDimensions.dimnames(named(rand(2,3),:dimC,:dimB), 3) --> [:dimA, :dimD, :dimE]
 
+end
+
+facts("FunctionalData") do
+    data = [1 2 3;4 5 6]
     n = named(data, :a, :b)
+
     @fact concat(n,n) --> named(concat(data,data), :a, :b)
     @fact flatten([n,n]) --> named(concat(data,data), :a, :b)
     @fact concat(n,n) --> named(concat(data,data), :a, :b)
     @fact flatten([n,n]) --> named(concat(data,data), :a, :b)
     @fact stack([n,n], :c) --> named(stack(Any[data,data]), :a, :b, :c)
     @fact unstack(stack([n,n], :c)) --> [named(data, :a, :b), named(data, :a, :b)]
+
+    @fact fst(n) --> named([1,4], :a)
+    @fact last(n) --> named([3,6], :a)
+    @fact take(n,2) --> named([1 2; 4 5], :a, :b)
+    @fact takelast(n,2) --> named([2 3; 5 6], :a, :b)
+    @fact part(n,3:3) --> named(col([3;6]), :a, :b)
+    @fact drop(n,2) --> part(n, 3:3)
 
     @fact (@p map n id) --> n
     @fact (@p map n array) --> n.data
@@ -95,7 +113,6 @@ facts("All") do
     @fact (@p map2 n data plus) --> named(data+data, :a, :b)
     @fact (@p map2 data n plus) --> named(data+data, :a, :b)
 end
-
 
 
 

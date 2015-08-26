@@ -21,6 +21,7 @@ immutable NamedDims{T,N}
     end
 end
 
+named{T}(a::AbstractArray{T,0}, named::Vector{Symbol}) = a[1]
 named(a::AbstractArray, names::Vector{Symbol}) = named(a, names...)
 named(a::AbstractArray, names...) = (assert(all(x->isa(x,Symbol), names)); NamedDims{eltype(a),ndims(a)}(a, names...))
 named(a::NamedDims, names::Vector{Symbol}) = named(a, names...)
@@ -34,7 +35,7 @@ isempty(a::NamedDims) = len(a) == 0
 
 for f in [:fst, :snd, :third, :last]
     @eval import FunctionalData.$f
-    @eval $f(a::NamedDims) = named($f(a.data), droplast(a.names))
+    @eval $f(a::NamedDims) = named(squeezer($f(a.data)), droplast(a.names))
 end
 
 import FunctionalData.at
@@ -125,6 +126,9 @@ end
 function named(a::NamedDims, inds...)
     isname(x) = (isa(x, Pair) && isa(x.first, Symbol)) || isa(x, Symbol)
     issqueezer(x) = isa(x, Pair) && isa(x.second, Integer)
+    if length(inds)==1 && !isname(inds[1])
+        return a.data[inds...]
+    end
     if all(x->!isa(x, Pair), inds) && any(x->!isa(x, Symbol), inds)  # pairs of arguments
         if length(inds) % 2 != 0
             error("NamedDimensions: Expected an even number of parameters, got $(inds)")
@@ -173,21 +177,28 @@ function showinfo(io::IO, a::NamedDims, comment::String = "")
     print(io, comment, length(comment) > 0 ? "  --  ": "----  ")
     @p mapvec2 a.names size(a.data) ((n,s) -> "$s $n") | join " x " | println io _
     showinfo(io, a.data; showheader = false)
+    a
 end
 
 for f in [:sqrt]
     @eval import Base.$f
-    @eval $f(a::NamedDims) = $f(a.data)
+    @eval $f(a::NamedDims, args...) = named($f(a.data, args...), a.names)
+end
+
+for f in [:power, :square]
+    @eval import FunctionalData.$f
+    @eval $f(a::NamedDims, args...) = named($f(a.data, args...), a.names)
 end
 
 for f in [:mean, :maximum, :minimum, :median, :std, :var, :sum]
     @eval import Base.$f
     @eval $f(a::NamedDims) = $f(a.data)
-    @eval $f(a::NamedDims, dim::Int) = named(squeeze($f(a.data,dim),dim), dropat(a.names,dim)...)
-    @eval $f(a::NamedDims, dim::Symbol) = (assert(dim in a.names); $f(a, getind(a, dim)))
+    @eval $f(a::NamedDims, dim::Int) = named(squeeze($f(a.data,dim),dim), dropat(a.names,dim))
+    @eval $f(a::NamedDims, dim::Symbol) = $f(a, getind(a, dim))
 end
 
 function broadcast(f::Function, smaller::NamedDims, larger::NamedDims)
+    assert(all(x->in(x, larger.names), smaller.names))
     last = @p filter larger.names not*inside smaller.names
     orderforsmaller = @p filter larger.names inside smaller.names
     a = isempty(last) ? larger : named(larger, last)
