@@ -166,7 +166,7 @@ function summary{T,N}(a::NamedDims{T,N})
 end
 
 import Base.show
-show(io::IO, a::NamedDims) = (println(io, summary(a)); Base.print_matrix_repr(io,a.data))
+show(io::IO, a::NamedDims) = (println(io, summary(a)); show(io,a.data))
 
 import FunctionalData.showinfo
 function showinfo(io::IO, a::NamedDims, comment::String = "")
