@@ -25,8 +25,10 @@ named{T}(a::AbstractArray{T,0}, named::Vector{Symbol}) = a[1]
 named(a::AbstractArray, names::Vector{Symbol}) = named(a, names...)
 named(a::AbstractArray, names...) = (assert(all(x->isa(x,Symbol), names)); NamedDims{eltype(a),ndims(a)}(a, names...))
 named(a::NamedDims, names::Vector{Symbol}) = named(a, names...)
+named(a, args...) = a
 
 import Base: getindex, eltype, isempty
+array(a) = a
 array(a::NamedDims) = a.data
 array(a::NamedDims, inds...) = array(named(a, inds...))
 getindex(a::NamedDims, inds...) = named(a, inds...)
@@ -36,6 +38,7 @@ isempty(a::NamedDims) = len(a) == 0
 for f in [:fst, :snd, :third, :last]
     @eval import FunctionalData.$f
     @eval $f(a::NamedDims) = named(squeezer($f(a.data)), droplast(a.names))
+    @eval $f(a::NamedDims, x::Symbol) = $f(named(a, x))
 end
 
 import FunctionalData.at
@@ -68,7 +71,7 @@ function flatten{T,N}(a::Vector{NamedDims{T,N}})
 end
 
 import FunctionalData.stack
-function stack{T,N}(a::Vector{NamedDims{T,N}}, name::Symbol)
+function stack(a, name::Symbol)
     assert(all(x->x.names == fst(a).names, a))
     assert(all(x->size(x) == size(fst(a)), a))
     named(stack(map(a,array)), concat(fst(a).names, name))
@@ -90,7 +93,8 @@ function map{T,N}(a::NamedDims{T,N}, f::Function)
     return stack(r, a)
 end
 mapper2(f, N, a, b, fa, fb) = stack([f(fa(at(a,i)), fb(at(b,i))) for i in 1:len(N)], N)
-squeezer(a) = size(a,ndims(a)) == 1 ? squeeze(a,ndims(a)) : a
+squeezer(a::AbstractArray) = size(a,ndims(a)) == 1 ? squeeze(a,ndims(a)) : a
+squeezer(a) = a
 map2(a::NamedDims, b::NamedDims, f::Function) = mapper2(f,a,a,b,id,id)
 map2(a::NamedDims, b, f::Function) = mapper2(f,a,a,b,id,squeezer)
 map2(a, b::NamedDims, f::Function) = mapper2(f,b,a,b,squeezer,id)
@@ -124,6 +128,7 @@ function getind(a::NamedDims, x::Symbol)
 end
 
 function named(a::NamedDims, inds...)
+    inds = [isa(x, Pair) && x.second == :end ? Pair(x.first, size(a, x.first)) : x for x in inds]
     isname(x) = (isa(x, Pair) && isa(x.first, Symbol)) || isa(x, Symbol)
     issqueezer(x) = isa(x, Pair) && isa(x.second, Integer)
     if length(inds)==1 && !isname(inds[1])

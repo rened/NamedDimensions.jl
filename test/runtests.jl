@@ -101,10 +101,15 @@ facts("FunctionalData") do
 
     @fact fst(n) --> named([1,4], :a)
     @fact last(n) --> named([3,6], :a)
+    @fact last(n,:b) --> named([3,6], :a)
+    @fact last(n,:a) --> named([4,5,6], :b)
     @fact take(n,2) --> named([1 2; 4 5], :a, :b)
     @fact takelast(n,2) --> named([2 3; 5 6], :a, :b)
     @fact part(n,3:3) --> named(col([3;6]), :a, :b)
     @fact drop(n,2) --> part(n, 3:3)
+
+    @fact named(n,:a=>:end) --> named([4,5,6],:b)
+    @fact named(n,:b=>:end) --> named([3,6], :a)
 
     @fact (@p map n id) --> n
     @fact (@p map n array) --> n.data
