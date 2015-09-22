@@ -178,7 +178,7 @@ import Base.show
 show(io::IO, a::NamedDims) = (println(io, summary(a)); show(io,a.data))
 
 import FunctionalData.showinfo
-function showinfo(io::IO, a::NamedDims, comment::String = "")
+function showinfo(io::IO, a::NamedDims, comment::AbstractString = "")
     print(io, comment, length(comment) > 0 ? "  --  ": "----  ")
     @p mapvec2 a.names size(a.data) ((n,s) -> "$s $n") | join " x " | println io _
     showinfo(io, a.data; showheader = false)
