@@ -119,6 +119,25 @@ facts("FunctionalData") do
     @fact (@p map2 data n plus) --> named(data+data, :a, :b)
 end
 
+    
+s = getstats()
+if s["nNonSuccessful"] == 0
+    print("   PASSED!")
+else
+    print("   FAILED: $(s["nFailures"]) failures and $(s["nErrors"]) errors") 
+end
+println("   ( $(s["nNonSuccessful"]+s["nSuccesses"]) tests for runtests.jl $(join(ARGS, " ")))")
+exit(s["nNonSuccessful"])
+
+
+
+
+
+
+
+
+
+
 
 
 
