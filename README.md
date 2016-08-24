@@ -1,6 +1,8 @@
 # NamedDimensions
 
-[![Build Status](https://travis-ci.org/rened/NamedDimensions.jl.svg?branch=master)](https://travis-ci.org/rened/NamedDimensions.jl)
+[![Build Status](https://travis-ci.org/rened/NamedDimensions.jl.png)](https://travis-ci.org/rened/NamedDimensions.jl)
+[![Build Status](http://pkg.julialang.org/badges/NamedDimensions_0.4.svg)](http://pkg.julialang.org/?pkg=NamedDimensions&ver=0.4)
+[![Build Status](http://pkg.julialang.org/badges/NamedDimensions_0.5.svg)](http://pkg.julialang.org/?pkg=NamedDimensions&ver=0.5)
 
 This package allows to assign names to the dimensions of a multidimensional array and to index, slice and permute using these names. Also, mathematical operators like `*` and `.+` are fully supported, as well as statistical functions like `mean` and `std`.
 

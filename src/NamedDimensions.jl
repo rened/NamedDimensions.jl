@@ -160,7 +160,7 @@ function named(a::NamedDims, inds...)
         isa(inds[i], Integer) ? nothing : push!(newnames, a.names[i])
     end
 
-    b = slice(a.data, inds...)
+    b = (VERSION < v"0.5-" ? slice : view)(a.data, inds...)
     if ordered == newnames
         return named(b, newnames)
     else

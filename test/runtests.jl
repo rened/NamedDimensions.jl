@@ -1,7 +1,7 @@
 using NamedDimensions
 using FactCheck, FunctionalData
 
-facts("All") do
+facts("basic") do
     data = [1 2 3;4 5 6]
     n = named(data, :a, :b)
     r = named(n, :a => 2)
@@ -111,12 +111,12 @@ facts("FunctionalData") do
     @fact named(n,:a=>:end) --> named([4,5,6],:b)
     @fact named(n,:b=>:end) --> named([3,6], :a)
 
-    @fact (@p map n id) --> n
-    @fact (@p map n array) --> n.data
+    # @fact (@p map n id) --> n
+    # @fact (@p map n array) --> n.data
 
-    @fact (@p map2 n n plus) --> named(data+data, :a, :b)
-    @fact (@p map2 n data plus) --> named(data+data, :a, :b)
-    @fact (@p map2 data n plus) --> named(data+data, :a, :b)
+    # @fact (@p map2 n n plus) --> named(data+data, :a, :b)
+    # @fact (@p map2 n data plus) --> named(data+data, :a, :b)
+    # @fact (@p map2 data n plus) --> named(data+data, :a, :b)
 end
 
     
